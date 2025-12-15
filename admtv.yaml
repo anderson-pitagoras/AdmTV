@@ -1,0 +1,154 @@
+version: "3.7"
+services:
+
+## --------------------------- ADMTV - BACKEND API --------------------------- ##
+
+  admtv_backend:
+    image: python:3.11-slim
+    command: >
+      sh -c "apt-get update && apt-get install -y gcc &&
+             pip install --no-cache-dir -r /app/requirements.txt &&
+             uvicorn server:app --host 0.0.0.0 --port 8001 --workers 2"
+    
+    working_dir: /app
+    
+    volumes:
+      - /opt/admtv/backend:/app
+
+    networks:
+      - CriarteNet
+
+    environment:
+      ## 🗄️ Banco de Dados (MongoDB)
+      - MONGO_URL=mongodb://admtv_mongodb:27017
+      - DB_NAME=iptv_management
+      
+      ## 🔐 Segurança (ALTERE ESTA CHAVE)
+      - SECRET_KEY=ALTERE_ESTA_CHAVE_SECRETA_USE_openssl_rand_-hex_32
+      
+      ## 🌐 CORS
+      - CORS_ORIGINS=https://admtv.criartebrasil.com.br,https://api.admtv.criartebrasil.com.br
+      
+      ## 🕒 Fuso Horário
+      - TZ=America/Sao_Paulo
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.admtv_backend.rule=Host(`api.admtv.criartebrasil.com.br`)
+        - traefik.http.routers.admtv_backend.entrypoints=websecure
+        - traefik.http.routers.admtv_backend.priority=1
+        - traefik.http.routers.admtv_backend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.admtv_backend.service=admtv_backend
+        - traefik.http.services.admtv_backend.loadbalancer.server.port=8001
+        - traefik.http.services.admtv_backend.loadbalancer.passHostHeader=1
+
+## --------------------------- ADMTV - FRONTEND --------------------------- ##
+
+  admtv_frontend:
+    image: node:18-alpine
+    command: >
+      sh -c "yarn install --frozen-lockfile &&
+             yarn build &&
+             yarn global add serve &&
+             serve -s build -l 3000"
+    
+    working_dir: /app
+    
+    volumes:
+      - /opt/admtv/frontend:/app
+
+    networks:
+      - CriarteNet
+
+    environment:
+      ## 🌐 URLs
+      - REACT_APP_BACKEND_URL=https://api.admtv.criartebrasil.com.br
+      - NODE_ENV=production
+      - GENERATE_SOURCEMAP=false
+      
+      ## 🕒 Fuso Horário
+      - TZ=America/Sao_Paulo
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.admtv_frontend.rule=Host(`admtv.criartebrasil.com.br`)
+        - traefik.http.routers.admtv_frontend.entrypoints=websecure
+        - traefik.http.routers.admtv_frontend.priority=1
+        - traefik.http.routers.admtv_frontend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.admtv_frontend.service=admtv_frontend
+        - traefik.http.services.admtv_frontend.loadbalancer.server.port=3000
+        - traefik.http.services.admtv_frontend.loadbalancer.passHostHeader=1
+
+## --------------------------- ADMTV - MONGODB --------------------------- ##
+
+  admtv_mongodb:
+    image: mongo:7.0
+    
+    volumes:
+      - admtv_mongodb_data:/data/db
+      - admtv_mongodb_config:/data/configdb
+
+    networks:
+      - CriarteNet
+
+    environment:
+      ## 🔐 Autenticação MongoDB (Opcional)
+      ## Descomente para habilitar autenticação:
+      # - MONGO_INITDB_ROOT_USERNAME=admin
+      # - MONGO_INITDB_ROOT_PASSWORD=SUA_SENHA_FORTE_AQUI
+      
+      ## 🕒 Fuso Horário
+      - TZ=America/Sao_Paulo
+
+    ## Descomente para acesso externo (útil para backup/manutenção)
+    #ports:
+    #  - 27017:27017
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+
+## --------------------------- ADMTV - VOLUMES --------------------------- ##
+
+volumes:
+  admtv_mongodb_data:
+    external: true
+    name: admtv_mongodb_data
+    
+  admtv_mongodb_config:
+    external: true
+    name: admtv_mongodb_config
+
+## --------------------------- ADMTV - NETWORKS --------------------------- ##
+
+networks:
+  CriarteNet:
+    external: true
+    name: CriarteNet
