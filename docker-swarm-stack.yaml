@@ -1,0 +1,148 @@
+version: "3.7"
+services:
+
+## --------------------------- IPTV MANAGER - BACKEND --------------------------- ##
+
+  iptv_backend:
+    image: python:3.11-slim  ## Imagem base Python
+    command: >
+      sh -c "pip install --no-cache-dir -r /app/requirements.txt &&
+             uvicorn server:app --host 0.0.0.0 --port 8001 --workers 2"
+    
+    working_dir: /app
+    
+    volumes:
+      - /opt/iptv-manager/backend:/app  ## Ajuste o caminho conforme sua estrutura
+
+    networks:
+      - CriarteNet  ## Nome da rede interna
+
+    environment:
+      ## 🗄️ Banco de Dados (MongoDB)
+      - MONGO_URL=mongodb://iptv_mongodb:27017
+      - DB_NAME=iptv_management
+      
+      ## 🔐 Segurança
+      - SECRET_KEY=ALTERE_ESTA_CHAVE_SECRETA_EM_PRODUCAO_USE_UMA_CHAVE_FORTE
+      
+      ## 🌐 CORS
+      - CORS_ORIGINS=https://admtv.criartebrasil.com.br,https://api.admtv.criartebrasil.com.br
+      
+      ## 🕒 Fuso Horário
+      - TZ=America/Sao_Paulo
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.iptv_backend.rule=Host(`api.admtv.criartebrasil.com.br`)  ## URL da API
+        - traefik.http.routers.iptv_backend.entrypoints=websecure
+        - traefik.http.routers.iptv_backend.priority=1
+        - traefik.http.routers.iptv_backend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.iptv_backend.service=iptv_backend
+        - traefik.http.services.iptv_backend.loadbalancer.server.port=8001
+        - traefik.http.services.iptv_backend.loadbalancer.passHostHeader=1
+
+## --------------------------- IPTV MANAGER - FRONTEND --------------------------- ##
+
+  iptv_frontend:
+    image: node:18-alpine  ## Imagem base Node.js
+    command: >
+      sh -c "yarn install --frozen-lockfile &&
+             yarn build &&
+             npx serve -s build -l 3000"
+    
+    working_dir: /app
+    
+    volumes:
+      - /opt/iptv-manager/frontend:/app  ## Ajuste o caminho conforme sua estrutura
+
+    networks:
+      - CriarteNet  ## Nome da rede interna
+
+    environment:
+      ## 🌐 URLs
+      - REACT_APP_BACKEND_URL=https://api.admtv.criartebrasil.com.br
+      - NODE_ENV=production
+      
+      ## 🕒 Fuso Horário
+      - TZ=America/Sao_Paulo
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.iptv_frontend.rule=Host(`admtv.criartebrasil.com.br`)  ## URL do Frontend
+        - traefik.http.routers.iptv_frontend.entrypoints=websecure
+        - traefik.http.routers.iptv_frontend.priority=1
+        - traefik.http.routers.iptv_frontend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.iptv_frontend.service=iptv_frontend
+        - traefik.http.services.iptv_frontend.loadbalancer.server.port=3000
+        - traefik.http.services.iptv_frontend.loadbalancer.passHostHeader=1
+
+## --------------------------- IPTV MANAGER - MONGODB --------------------------- ##
+
+  iptv_mongodb:
+    image: mongo:7.0  ## Versão do MongoDB
+    
+    volumes:
+      - iptv_mongodb_data:/data/db
+      - iptv_mongodb_config:/data/configdb
+
+    networks:
+      - CriarteNet  ## Nome da rede interna
+
+    environment:
+      ## 🔐 Autenticação MongoDB (Opcional - Remova para usar sem autenticação)
+      # - MONGO_INITDB_ROOT_USERNAME=admin
+      # - MONGO_INITDB_ROOT_PASSWORD=SUA_SENHA_FORTE_AQUI
+      
+      ## 🕒 Fuso Horário
+      - TZ=America/Sao_Paulo
+
+    ## Descomente para acesso externo (útil para backup/manutenção)
+    # ports:
+    #   - 27017:27017
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+
+## --------------------------- VOLUMES --------------------------- ##
+
+volumes:
+  iptv_mongodb_data:
+    driver: local
+    
+  iptv_mongodb_config:
+    driver: local
+
+## --------------------------- NETWORKS --------------------------- ##
+
+networks:
+  CriarteNet:  ## Nome da rede interna
+    external: true
+    name: CriarteNet  ## Nome da rede interna
