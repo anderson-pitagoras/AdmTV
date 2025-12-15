@@ -34,9 +34,30 @@ const UserPortal = () => {
     }
   };
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copiado!');
+  const copyToClipboard = async (text) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        toast.success('Copiado!');
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          toast.success('Copiado!');
+        } catch (err) {
+          toast.error('Erro ao copiar');
+        }
+        document.body.removeChild(textArea);
+      }
+    } catch (err) {
+      toast.error('Erro ao copiar');
+    }
   };
 
   const getDaysRemaining = () => {
