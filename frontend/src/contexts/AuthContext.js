@@ -21,8 +21,13 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
+      const currentToken = token || localStorage.getItem('token');
+      if (!currentToken) {
+        setLoading(false);
+        return;
+      }
       const response = await axios.get(`${API}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${currentToken}` }
       });
       setUser(response.data);
     } catch (error) {
