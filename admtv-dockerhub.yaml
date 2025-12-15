@@ -1,0 +1,78 @@
+version: "3.7"
+services:
+
+  admtv_backend:
+    image: seu-usuario/admtv-backend:latest
+    
+    networks:
+      - CriarteNet
+
+    environment:
+      - MONGO_URL=mongodb://admtv_mongodb:27017
+      - DB_NAME=iptv_management
+      - SECRET_KEY=ALTERE_AQUI
+      - CORS_ORIGINS=https://admtv.criartebrasil.com.br,https://api.admtv.criartebrasil.com.br
+      - TZ=America/Sao_Paulo
+
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.admtv_backend.rule=Host(`api.admtv.criartebrasil.com.br`)
+        - traefik.http.routers.admtv_backend.entrypoints=websecure
+        - traefik.http.routers.admtv_backend.tls.certresolver=letsencryptresolver
+        - traefik.http.services.admtv_backend.loadbalancer.server.port=8001
+
+  admtv_frontend:
+    image: seu-usuario/admtv-frontend:latest
+    
+    networks:
+      - CriarteNet
+
+    environment:
+      - TZ=America/Sao_Paulo
+
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.admtv_frontend.rule=Host(`admtv.criartebrasil.com.br`)
+        - traefik.http.routers.admtv_frontend.entrypoints=websecure
+        - traefik.http.routers.admtv_frontend.tls.certresolver=letsencryptresolver
+        - traefik.http.services.admtv_frontend.loadbalancer.server.port=3000
+
+  admtv_mongodb:
+    image: mongo:7.0
+    
+    volumes:
+      - admtv_mongodb_data:/data/db
+
+    networks:
+      - CriarteNet
+
+    environment:
+      - TZ=America/Sao_Paulo
+
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 2048M
+
+volumes:
+  admtv_mongodb_data:
+    external: true
+    name: admtv_mongodb_data
+
+networks:
+  CriarteNet:
+    external: true
+    name: CriarteNet
