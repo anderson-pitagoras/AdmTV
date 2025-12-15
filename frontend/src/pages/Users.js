@@ -1,0 +1,352 @@
+import React, { useEffect, useState } from 'react';
+import DashboardLayout from '@/components/DashboardLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Pencil, Trash2, CheckCircle, Copy } from 'lucide-react';
+import axiosInstance from '@/lib/axios';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+const Users = () => {
+  const [users, setUsers] = useState([]);
+  const [dnsServers, setDnsServers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    dns_id: '',
+    mac_address: '',
+    expire_date: '',
+    pin: '0000'
+  });
+
+  useEffect(() => {
+    fetchUsers();
+    fetchDNS();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axiosInstance.get('/users');
+      setUsers(response.data);
+    } catch (error) {
+      toast.error('Erro ao carregar usuários');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDNS = async () => {
+    try {
+      const response = await axiosInstance.get('/dns');
+      setDnsServers(response.data);
+    } catch (error) {
+      toast.error('Erro ao carregar servidores DNS');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingUser) {
+        await axiosInstance.put(`/users/${editingUser.id}`, formData);
+        toast.success('Usuário atualizado com sucesso!');
+      } else {
+        await axiosInstance.post('/users', formData);
+        toast.success('Usuário criado com sucesso!');
+      }
+      setDialogOpen(false);
+      resetForm();
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erro ao salvar usuário');
+    }
+  };
+
+  const handleDelete = async (userId) => {
+    if (!window.confirm('Tem certeza que deseja excluir este usuário?')) return;
+    
+    try {
+      await axiosInstance.delete(`/users/${userId}`);
+      toast.success('Usuário excluído com sucesso!');
+      fetchUsers();
+    } catch (error) {
+      toast.error('Erro ao excluir usuário');
+    }
+  };
+
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setFormData({
+      username: user.username,
+      password: user.password,
+      dns_id: user.dns_id,
+      mac_address: user.mac_address || '',
+      expire_date: format(new Date(user.expire_date), 'yyyy-MM-dd'),
+      pin: user.pin
+    });
+    setDialogOpen(true);
+  };
+
+  const resetForm = () => {
+    setEditingUser(null);
+    setFormData({
+      username: '',
+      password: '',
+      dns_id: '',
+      mac_address: '',
+      expire_date: '',
+      pin: '0000'
+    });
+  };
+
+  const handleValidate = async (userId) => {
+    try {
+      const response = await axiosInstance.post(`/users/${userId}/validate`);
+      if (response.data.valid) {
+        toast.success('Lista M3U válida e acessível!');
+      } else {
+        toast.error(`Lista M3U inválida: ${response.data.message}`);
+      }
+    } catch (error) {
+      toast.error('Erro ao validar lista M3U');
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copiado para área de transferência!');
+  };
+
+  const filteredUsers = users.filter(user =>
+    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (user.mac_address && user.mac_address.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const isExpired = (expireDate) => {
+    return new Date(expireDate) < new Date();
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-heading font-black mb-2">Usuários IPTV</h1>
+            <p className="text-muted-foreground">Gerencie as credenciais dos seus clientes</p>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild>
+              <Button className="shadow-lg shadow-primary/20" data-testid="add-user-button">
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Usuário
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{editingUser ? 'Editar Usuário' : 'Novo Usuário'}</DialogTitle>
+                <DialogDescription>
+                  {editingUser ? 'Atualize as informações do usuário' : 'Adicione um novo usuário IPTV'}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-2 gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Usuário *</Label>
+                    <Input
+                      id="username"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      required
+                      data-testid="user-username-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Senha *</Label>
+                    <Input
+                      id="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                      data-testid="user-password-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dns_id">Servidor DNS *</Label>
+                    <Select
+                      value={formData.dns_id}
+                      onValueChange={(value) => setFormData({ ...formData, dns_id: value })}
+                      required
+                    >
+                      <SelectTrigger data-testid="user-dns-select">
+                        <SelectValue placeholder="Selecione o DNS" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dnsServers.map((dns) => (
+                          <SelectItem key={dns.id} value={dns.id}>
+                            {dns.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="expire_date">Data de Expiração *</Label>
+                    <Input
+                      id="expire_date"
+                      type="date"
+                      value={formData.expire_date}
+                      onChange={(e) => setFormData({ ...formData, expire_date: e.target.value })}
+                      required
+                      data-testid="user-expire-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mac_address">Endereço MAC</Label>
+                    <Input
+                      id="mac_address"
+                      value={formData.mac_address}
+                      onChange={(e) => setFormData({ ...formData, mac_address: e.target.value })}
+                      placeholder="00:00:00:00:00:00"
+                      data-testid="user-mac-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pin">PIN</Label>
+                    <Input
+                      id="pin"
+                      value={formData.pin}
+                      onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
+                      placeholder="0000"
+                      maxLength={4}
+                      data-testid="user-pin-input"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" data-testid="user-save-button">
+                    {editingUser ? 'Atualizar' : 'Criar'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <div className="flex gap-4">
+          <Input
+            placeholder="Buscar por usuário ou MAC..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+            data-testid="search-users-input"
+          />
+        </div>
+
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Usuário</TableHead>
+                <TableHead>Senha</TableHead>
+                <TableHead>MAC Address</TableHead>
+                <TableHead>Expiração</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Lista M3U</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    Nenhum usuário encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user) => (
+                  <TableRow key={user.id} className="hover:bg-muted/50" data-testid="user-table-row">
+                    <TableCell className="font-mono font-medium">{user.username}</TableCell>
+                    <TableCell className="font-mono">{user.password}</TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">
+                      {user.mac_address || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {format(new Date(user.expire_date), 'dd/MM/yyyy', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell>
+                      {isExpired(user.expire_date) ? (
+                        <span className="text-xs px-2 py-1 rounded-full bg-destructive/20 text-destructive">
+                          Expirado
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent">
+                          Ativo
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => copyToClipboard(user.lista_m3u)}
+                          data-testid="copy-m3u-button"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleValidate(user.id)}
+                          data-testid="validate-m3u-button"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(user)}
+                          data-testid="edit-user-button"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(user.id)}
+                          className="text-destructive hover:text-destructive"
+                          data-testid="delete-user-button"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default Users;
