@@ -395,6 +395,15 @@ const Users = () => {
                         <Button
                           variant="ghost"
                           size="icon"
+                          onClick={() => handleSendWhatsApp(user.id)}
+                          title="Enviar WhatsApp"
+                          data-testid="send-whatsapp-button"
+                        >
+                          <MessageCircle className="h-4 w-4 text-accent" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleEdit(user)}
                           data-testid="edit-user-button"
                         >
