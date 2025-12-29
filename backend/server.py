@@ -83,10 +83,13 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
     dns_id: Optional[str] = None
+    name: Optional[str] = None
     mac_address: Optional[str] = None
-    expire_date: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
     active: Optional[bool] = None
     pin: Optional[str] = None
+    plan_price: Optional[float] = None
+    pay_url: Optional[str] = None
 
 class DNS(BaseModel):
     model_config = ConfigDict(extra="ignore")
