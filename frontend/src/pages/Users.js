@@ -213,6 +213,16 @@ const Users = () => {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="name">Nome</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Nome do cliente"
+                      data-testid="user-name-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="dns_id">Servidor DNS *</Label>
                     <Select
                       value={formData.dns_id}
@@ -232,14 +242,36 @@ const Users = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="expire_date">Data de Expiração *</Label>
+                    <Label htmlFor="expires_at">Data de Expiração *</Label>
                     <Input
-                      id="expire_date"
+                      id="expires_at"
                       type="date"
-                      value={formData.expire_date}
-                      onChange={(e) => setFormData({ ...formData, expire_date: e.target.value })}
+                      value={formData.expires_at}
+                      onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
                       required
                       data-testid="user-expire-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="plan_price">Valor do Plano (R$)</Label>
+                    <Input
+                      id="plan_price"
+                      type="number"
+                      step="0.01"
+                      value={formData.plan_price}
+                      onChange={(e) => setFormData({ ...formData, plan_price: e.target.value })}
+                      placeholder="50.00"
+                      data-testid="user-plan-price-input"
+                    />
+                  </div>
+                  <div className="space-y-2 col-span-2">
+                    <Label htmlFor="pay_url">Link de Pagamento</Label>
+                    <Input
+                      id="pay_url"
+                      value={formData.pay_url}
+                      onChange={(e) => setFormData({ ...formData, pay_url: e.target.value })}
+                      placeholder="https://..."
+                      data-testid="user-pay-url-input"
                     />
                   </div>
                   <div className="space-y-2">
