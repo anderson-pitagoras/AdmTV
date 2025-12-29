@@ -13,7 +13,8 @@ import jwt
 from passlib.context import CryptContext
 import httpx
 import uuid
-from wuzapi import send_whatsapp_message, format_expiring_message
+from date_fns import format
+from date_fns.locale import pt_BR as ptBR
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
