@@ -60,6 +60,7 @@ class User(BaseModel):
     password: str
     dns_id: str
     name: Optional[str] = None
+    phone: Optional[str] = None
     mac_address: Optional[str] = None
     lista_m3u: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
