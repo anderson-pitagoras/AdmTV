@@ -5,29 +5,23 @@ WUZAPI_URL = "https://wuzapi.criartebrasil.com.br/api"
 INSTANCE_ID = "b2b170f60d445656efca18d92edc916d"
 TOKEN = "Arte@2025"
 
-async def send_whatsapp_message(phone: str, message: str) -> dict:
+async def send_whatsapp_message(phone: str, message: str, settings: dict) -> dict:
     """Envia mensagem WhatsApp via WuzAPI"""
     
-    # Formatar número (remover caracteres especiais)
     phone_clean = ''.join(filter(str.isdigit, phone))
     if not phone_clean.startswith('55'):
         phone_clean = '55' + phone_clean
     
-    url = f"{WUZAPI_URL}/{INSTANCE_ID}/messages/text"
-    
-    payload = {
-        "phone": phone_clean,
-        "message": message
-    }
-    
-    headers = {
-        "Content-Type": "application/json",
-        "Token": TOKEN
-    }
+    url = f"{settings['whatsapp_url']}/{settings['whatsapp_instance']}/messages/text"
     
     async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, headers=headers, timeout=30.0)
-        return {"success": response.status_code == 200, "status": response.status_code, "data": response.json()}
+        response = await client.post(
+            url, 
+            json={"phone": phone_clean, "message": message},
+            headers={"Content-Type": "application/json", "Token": settings['whatsapp_token']},
+            timeout=30.0
+        )
+        return {"success": response.status_code == 200, "status": response.status_code}
 
 def format_expiring_message(name: str, username: str, expires_at: str, plan_price: float, pay_url: str, notes: str = "") -> str:
     """Template mensagem de expiração"""
