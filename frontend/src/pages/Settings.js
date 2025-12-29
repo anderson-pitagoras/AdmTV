@@ -33,15 +33,19 @@ const Settings = () => {
   const fetchSettings = async () => {
     try {
       const response = await axiosInstance.get('/settings');
-      setFormData({
-        whatsapp_support: response.data.whatsapp_support || '',
-        welcome_message: response.data.welcome_message || ''
-      });
+      setFormData(response.data);
     } catch (error) {
       toast.error('Erro ao carregar configurações');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await axiosInstance.get('/templates');
+      setTemplates(response.data);
+    } catch (error) {}
   };
 
   const handleSubmit = async (e) => {
