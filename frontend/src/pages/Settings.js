@@ -46,6 +46,40 @@ const Settings = () => {
       const response = await axiosInstance.get('/templates');
       setTemplates(response.data);
     } catch (error) {}
+
+  const handleAddTemplate = async () => {
+    if (!newTemplate.name || !newTemplate.message) return toast.error('Preencha nome e mensagem');
+    try {
+      await axiosInstance.post(`/templates?name=${encodeURIComponent(newTemplate.name)}&message=${encodeURIComponent(newTemplate.message)}`);
+      toast.success('Template criado!');
+      setNewTemplate({ name: '', message: '' });
+      fetchTemplates();
+    } catch (error) {
+      toast.error('Erro ao criar template');
+    }
+  };
+
+  const handleDeleteTemplate = async (id) => {
+    try {
+      await axiosInstance.delete(`/templates/${id}`);
+      toast.success('Template excluído!');
+      fetchTemplates();
+    } catch (error) {
+      toast.error('Erro');
+    }
+  };
+
+  const handleGetQR = async () => {
+    try {
+      const response = await axiosInstance.get('/whatsapp/qrcode');
+      if (response.data.qrcode) {
+        window.open(response.data.qrcode, '_blank');
+      }
+    } catch (error) {
+      toast.error('Erro ao obter QR Code');
+    }
+  };
+
   };
 
   const handleSubmit = async (e) => {
