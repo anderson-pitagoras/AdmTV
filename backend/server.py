@@ -283,16 +283,19 @@ async def update_user(user_id: str, user_data: UserUpdate, current_admin: Admin 
         if dns:
             update_data['lista_m3u'] = f"{dns['url']}/get.php?username={username}&password={password}&type=m3u_plus&output=mpegts"
     
-    if 'expire_date' in update_data:
-        update_data['expire_date'] = update_data['expire_date'].isoformat()
+    if 'expires_at' in update_data:
+        update_data['expires_at'] = update_data['expires_at'].isoformat()
     
     await db.users.update_one({"id": user_id}, {"$set": update_data})
     
     updated_user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if isinstance(updated_user.get('created_at'), str):
         updated_user['created_at'] = datetime.fromisoformat(updated_user['created_at'])
-    if isinstance(updated_user.get('expire_date'), str):
-        updated_user['expire_date'] = datetime.fromisoformat(updated_user['expire_date'])
+    # Suporte para campo antigo
+    if 'expire_date' in updated_user and 'expires_at' not in updated_user:
+        updated_user['expires_at'] = updated_user['expire_date']
+    if isinstance(updated_user.get('expires_at'), str):
+        updated_user['expires_at'] = datetime.fromisoformat(updated_user['expires_at'])
     
     return User(**updated_user)
 
