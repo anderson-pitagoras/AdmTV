@@ -27,6 +27,7 @@ const Users = () => {
     password: '',
     dns_id: '',
     name: '',
+    phone: '',
     mac_address: '',
     expires_at: '',
     pin: '0000',
