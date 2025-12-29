@@ -161,8 +161,8 @@ const Users = () => {
     (user.mac_address && user.mac_address.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const isExpired = (expireDate) => {
-    return new Date(expireDate) < new Date();
+  const isExpired = (expiresAt) => {
+    return new Date(expiresAt) < new Date();
   };
 
   return (
