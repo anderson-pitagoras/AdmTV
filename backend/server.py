@@ -501,8 +501,10 @@ async def get_user_portal(username: str):
     
     if isinstance(user.get('created_at'), str):
         user['created_at'] = datetime.fromisoformat(user['created_at'])
-    if isinstance(user.get('expire_date'), str):
-        user['expire_date'] = datetime.fromisoformat(user['expire_date'])
+    if 'expire_date' in user and 'expires_at' not in user:
+        user['expires_at'] = user['expire_date']
+    if isinstance(user.get('expires_at'), str):
+        user['expires_at'] = datetime.fromisoformat(user['expires_at'])
     
     return {
         "user": User(**user),
