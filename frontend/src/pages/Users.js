@@ -320,7 +320,7 @@ const Users = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Usuário</TableHead>
+                <TableHead>Nome/Usuário</TableHead>
                 <TableHead>Senha</TableHead>
                 <TableHead>MAC Address</TableHead>
                 <TableHead>Expiração</TableHead>
