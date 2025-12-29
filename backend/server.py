@@ -269,6 +269,7 @@ async def create_user(user_data: UserCreate, current_admin: Admin = Depends(get_
         password=user_data.password,
         dns_id=user_data.dns_id,
         name=user_data.name,
+        phone=user_data.phone,
         mac_address=user_data.mac_address,
         expires_at=user_data.expires_at,
         lista_m3u=lista_m3u,
