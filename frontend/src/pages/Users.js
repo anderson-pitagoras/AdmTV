@@ -131,6 +131,15 @@ const Users = () => {
     }
   };
 
+  const handleSendWhatsApp = async (userId) => {
+    try {
+      await axiosInstance.post('/notifications/send-whatsapp', { user_id: userId });
+      toast.success('Mensagem WhatsApp enviada!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erro ao enviar WhatsApp');
+    }
+  };
+
   const copyToClipboard = async (text) => {
     try {
       if (navigator.clipboard && window.isSecureContext) {
