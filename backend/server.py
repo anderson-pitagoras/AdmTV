@@ -132,7 +132,18 @@ class Settings(BaseModel):
     id: str = "system_settings"
     whatsapp_support: str = ""
     welcome_message: str = ""
+    whatsapp_enabled: bool = False
+    whatsapp_url: str = "https://wuzapi.criartebrasil.com.br/api"
+    whatsapp_instance: str = ""
+    whatsapp_token: str = ""
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MessageTemplate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    message: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SettingsUpdate(BaseModel):
     whatsapp_support: Optional[str] = None
