@@ -18,6 +18,7 @@ const Users = () => {
   const [dnsServers, setDnsServers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [whatsappDialog, setWhatsappDialog] = useState({ open: false, userId: null });
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
