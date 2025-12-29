@@ -27,6 +27,7 @@ const Settings = () => {
 
   useEffect(() => {
     fetchSettings();
+    fetchTemplates();
   }, []);
 
   const fetchSettings = async () => {
