@@ -109,9 +109,12 @@ const Users = () => {
       username: '',
       password: '',
       dns_id: '',
+      name: '',
       mac_address: '',
-      expire_date: '',
-      pin: '0000'
+      expires_at: '',
+      pin: '0000',
+      plan_price: '',
+      pay_url: ''
     });
   };
 
