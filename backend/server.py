@@ -452,7 +452,7 @@ async def get_stats(current_admin: Admin = Depends(get_current_admin)):
     
     # Count expired users
     now = datetime.now(timezone.utc).isoformat()
-    expired_users = await db.users.count_documents({"expire_date": {"$lt": now}})
+    expired_users = await db.users.count_documents({"expires_at": {"$lt": now}})
     
     total_dns = await db.dns_servers.count_documents({})
     
