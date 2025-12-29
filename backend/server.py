@@ -471,6 +471,12 @@ async def create_template(name: str, message: str, current_admin: Admin = Depend
     await db.templates.insert_one(doc)
     return template
 
+@api_router.put("/templates/{template_id}")
+async def update_template(template_id: str, name: str, message: str, current_admin: Admin = Depends(get_current_admin)):
+    await db.templates.update_one({"id": template_id}, {"$set": {"name": name, "message": message}})
+    template = await db.templates.find_one({"id": template_id}, {"_id": 0})
+    return template
+
 @api_router.delete("/templates/{template_id}")
 async def delete_template(template_id: str, current_admin: Admin = Depends(get_current_admin)):
     await db.templates.delete_one({"id": template_id})
