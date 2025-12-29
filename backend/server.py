@@ -540,7 +540,7 @@ async def send_whatsapp_notification(request: SendWhatsAppRequest, current_admin
         if isinstance(user.get('expires_at'), str):
             user['expires_at'] = datetime.fromisoformat(user['expires_at'])
         
-        expires_at_str = format(user['expires_at'], 'dd/MM/yyyy', locale=ptBR) if user.get('expires_at') else ''
+        expires_at_str = user['expires_at'].strftime('%d/%m/%Y') if user.get('expires_at') else ''
         
         message = format_expiring_message(
             name=user.get('name', user['username']),
