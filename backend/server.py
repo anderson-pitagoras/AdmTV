@@ -436,6 +436,40 @@ async def get_settings(current_admin: Admin = Depends(get_current_admin)):
         doc = default_settings.model_dump()
         doc['updated_at'] = doc['updated_at'].isoformat()
         await db.settings.insert_one(doc)
+
+# ==================== MESSAGE TEMPLATES ====================
+
+@api_router.get("/templates")
+async def get_templates(current_admin: Admin = Depends(get_current_admin)):
+    templates = await db.templates.find({}, {"_id": 0}).to_list(100)
+    return templates
+
+@api_router.post("/templates")
+async def create_template(name: str, message: str, current_admin: Admin = Depends(get_current_admin)):
+    template = MessageTemplate(name=name, message=message)
+    doc = template.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.templates.insert_one(doc)
+    return template
+
+@api_router.delete("/templates/{template_id}")
+async def delete_template(template_id: str, current_admin: Admin = Depends(get_current_admin)):
+    await db.templates.delete_one({"id": template_id})
+    return {"message": "Template deleted"}
+
+@api_router.get("/whatsapp/qrcode")
+async def get_qrcode(current_admin: Admin = Depends(get_current_admin)):
+    settings = await db.settings.find_one({"id": "system_settings"}, {"_id": 0})
+    if not settings or not settings.get('whatsapp_instance'):
+        raise HTTPException(status_code=400, detail="WhatsApp not configured")
+    
+    url = f"{settings['whatsapp_url']}/{settings['whatsapp_instance']}/qrcode"
+    headers = {"Token": settings['whatsapp_token']}
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, timeout=10.0)
+        return response.json()
+
         return default_settings
     
     if isinstance(settings.get('updated_at'), str):
