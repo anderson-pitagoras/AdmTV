@@ -58,12 +58,15 @@ class User(BaseModel):
     username: str
     password: str
     dns_id: str
+    name: Optional[str] = None
     mac_address: Optional[str] = None
     lista_m3u: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    expire_date: datetime
+    expires_at: datetime
     active: bool = True
     pin: str = "0000"
+    plan_price: Optional[float] = None
+    pay_url: Optional[str] = None
 
 class UserCreate(BaseModel):
     username: str
