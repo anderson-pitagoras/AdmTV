@@ -117,65 +117,82 @@ const Settings = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Suporte</CardTitle>
-              <CardDescription>
-                Configurações de contato com o suporte
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp_support">WhatsApp do Suporte</Label>
-                <Input
-                  id="whatsapp_support"
-                  value={formData.whatsapp_support}
-                  onChange={(e) => setFormData({ ...formData, whatsapp_support: e.target.value })}
-                  placeholder="+55 11 99999-9999"
-                  data-testid="settings-whatsapp-input"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Número exibido no portal do usuário
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="geral">
+            <TabsList>
+              <TabsTrigger value="geral">Geral</TabsTrigger>
+              <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+              <TabsTrigger value="templates">Templates</TabsTrigger>
+            </TabsList>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Mensagens</CardTitle>
-              <CardDescription>
-                Personalize as mensagens do sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="welcome_message">Mensagem de Boas-Vindas</Label>
-                <Textarea
-                  id="welcome_message"
-                  value={formData.welcome_message}
-                  onChange={(e) => setFormData({ ...formData, welcome_message: e.target.value })}
-                  placeholder="Bem-vindo ao nosso serviço IPTV..."
-                  rows={4}
-                  data-testid="settings-welcome-input"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Mensagem exibida no portal do usuário
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <TabsContent value="geral">
+              <Card>
+                <CardHeader><CardTitle>Suporte</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>WhatsApp do Suporte</Label>
+                    <Input value={formData.whatsapp_support} onChange={(e) => setFormData({ ...formData, whatsapp_support: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Mensagem de Boas-Vindas</Label>
+                    <Textarea value={formData.welcome_message} onChange={(e) => setFormData({ ...formData, welcome_message: e.target.value })} rows={4} />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="whatsapp">
+              <Card>
+                <CardHeader><CardTitle>Configuração WhatsApp</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch checked={formData.whatsapp_enabled} onCheckedChange={(checked) => setFormData({ ...formData, whatsapp_enabled: checked })} />
+                    <Label>Ativar WhatsApp</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>URL Server</Label>
+                    <Input value={formData.whatsapp_url} onChange={(e) => setFormData({ ...formData, whatsapp_url: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Instance ID</Label>
+                    <Input value={formData.whatsapp_instance} onChange={(e) => setFormData({ ...formData, whatsapp_instance: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Token</Label>
+                    <Input type="password" value={formData.whatsapp_token} onChange={(e) => setFormData({ ...formData, whatsapp_token: e.target.value })} />
+                  </div>
+                  <Button type="button" onClick={handleGetQR} variant="outline"><QrCode className="mr-2 h-4 w-4" />Ver QR Code</Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="templates">
+              <Card>
+                <CardHeader><CardTitle>Templates de Mensagem</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Nome</Label>
+                    <Input value={newTemplate.name} onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })} placeholder="Ex: Vencimento Próximo" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Mensagem (use {'{name}'}, {'{username}'}, {'{expires_at}'}, {'{plan_price}'}, {'{pay_url}'})</Label>
+                    <Textarea value={newTemplate.message} onChange={(e) => setNewTemplate({ ...newTemplate, message: e.target.value })} rows={6} />
+                  </div>
+                  <Button type="button" onClick={handleAddTemplate}><Plus className="mr-2 h-4 w-4" />Adicionar Template</Button>
+                  <div className="space-y-2 mt-4">
+                    {templates.map(t => (
+                      <div key={t.id} className="flex items-center justify-between p-3 bg-muted rounded">
+                        <span className="font-medium">{t.name}</span>
+                        <Button type="button" variant="ghost" size="icon" onClick={() => handleDeleteTemplate(t.id)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
 
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={saving}
-              className="shadow-lg shadow-primary/20"
-              data-testid="settings-save-button"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {saving ? 'Salvando...' : 'Salvar Configurações'}
-            </Button>
+            <Button type="submit" disabled={saving}><Save className="mr-2 h-4 w-4" />{saving ? 'Salvando...' : 'Salvar'}</Button>
           </div>
         </form>
       </div>
