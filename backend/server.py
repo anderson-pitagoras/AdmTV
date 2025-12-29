@@ -75,6 +75,7 @@ class UserCreate(BaseModel):
     password: str
     dns_id: str
     name: Optional[str] = None
+    phone: Optional[str] = None
     mac_address: Optional[str] = None
     expires_at: datetime
     pin: Optional[str] = "0000"
