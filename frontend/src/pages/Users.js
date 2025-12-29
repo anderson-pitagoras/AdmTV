@@ -93,9 +93,12 @@ const Users = () => {
       username: user.username,
       password: user.password,
       dns_id: user.dns_id,
+      name: user.name || '',
       mac_address: user.mac_address || '',
-      expire_date: format(new Date(user.expire_date), 'yyyy-MM-dd'),
-      pin: user.pin
+      expires_at: format(new Date(user.expires_at), 'yyyy-MM-dd'),
+      pin: user.pin,
+      plan_price: user.plan_price || '',
+      pay_url: user.pay_url || ''
     });
     setDialogOpen(true);
   };
