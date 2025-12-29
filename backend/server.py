@@ -148,6 +148,10 @@ class MessageTemplate(BaseModel):
 class SettingsUpdate(BaseModel):
     whatsapp_support: Optional[str] = None
     welcome_message: Optional[str] = None
+    whatsapp_enabled: Optional[bool] = None
+    whatsapp_url: Optional[str] = None
+    whatsapp_instance: Optional[str] = None
+    whatsapp_token: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
