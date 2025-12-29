@@ -489,12 +489,6 @@ async def get_qrcode(current_admin: Admin = Depends(get_current_admin)):
         response = await client.get(url, headers=headers, timeout=10.0)
         return response.json()
 
-        return default_settings
-    
-    if isinstance(settings.get('updated_at'), str):
-        settings['updated_at'] = datetime.fromisoformat(settings['updated_at'])
-    return Settings(**settings)
-
 @api_router.put("/settings", response_model=Settings)
 async def update_settings(settings_data: SettingsUpdate, current_admin: Admin = Depends(get_current_admin)):
     update_data = {k: v for k, v in settings_data.model_dump().items() if v is not None}
