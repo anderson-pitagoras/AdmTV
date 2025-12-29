@@ -435,11 +435,26 @@ async def delete_payment(payment_id: str, current_admin: Admin = Depends(get_cur
 async def get_settings(current_admin: Admin = Depends(get_current_admin)):
     settings = await db.settings.find_one({"id": "system_settings"}, {"_id": 0})
     if not settings:
-        # Create default settings
         default_settings = Settings()
         doc = default_settings.model_dump()
         doc['updated_at'] = doc['updated_at'].isoformat()
         await db.settings.insert_one(doc)
+        return default_settings
+    
+    if isinstance(settings.get('updated_at'), str):
+        settings['updated_at'] = datetime.fromisoformat(settings['updated_at'])
+    
+    # Garantir campos novos
+    if 'whatsapp_enabled' not in settings:
+        settings['whatsapp_enabled'] = False
+    if 'whatsapp_url' not in settings:
+        settings['whatsapp_url'] = 'https://wuzapi.criartebrasil.com.br/api'
+    if 'whatsapp_instance' not in settings:
+        settings['whatsapp_instance'] = ''
+    if 'whatsapp_token' not in settings:
+        settings['whatsapp_token'] = ''
+    
+    return Settings(**settings)
 
 # ==================== MESSAGE TEMPLATES ====================
 
