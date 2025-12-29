@@ -339,16 +339,19 @@ const Users = () => {
               ) : (
                 filteredUsers.map((user) => (
                   <TableRow key={user.id} className="hover:bg-muted/50" data-testid="user-table-row">
-                    <TableCell className="font-mono font-medium">{user.username}</TableCell>
+                    <TableCell>
+                      <div className="font-medium">{user.name || user.username}</div>
+                      <div className="text-xs text-muted-foreground font-mono">{user.username}</div>
+                    </TableCell>
                     <TableCell className="font-mono">{user.password}</TableCell>
                     <TableCell className="font-mono text-sm text-muted-foreground">
                       {user.mac_address || 'N/A'}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {format(new Date(user.expire_date), 'dd/MM/yyyy', { locale: ptBR })}
+                      {format(new Date(user.expires_at), 'dd/MM/yyyy', { locale: ptBR })}
                     </TableCell>
                     <TableCell>
-                      {isExpired(user.expire_date) ? (
+                      {isExpired(user.expires_at) ? (
                         <span className="text-xs px-2 py-1 rounded-full bg-destructive/20 text-destructive">
                           Expirado
                         </span>
