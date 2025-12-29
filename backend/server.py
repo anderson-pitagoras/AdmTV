@@ -514,6 +514,51 @@ async def get_user_portal(username: str):
         "whatsapp_support": settings.get('whatsapp_support', '') if settings else ''
     }
 
+# ==================== WHATSAPP NOTIFICATIONS ====================
+
+class SendWhatsAppRequest(BaseModel):
+    user_id: str
+    phone: Optional[str] = None
+    message: Optional[str] = None
+
+@api_router.post("/notifications/send-whatsapp")
+async def send_whatsapp_notification(request: SendWhatsAppRequest, current_admin: Admin = Depends(get_current_admin)):
+    # Get user
+    user = await db.users.find_one({"id": request.user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get settings for support phone
+    settings = await db.settings.find_one({"id": "system_settings"}, {"_id": 0})
+    phone = request.phone or (settings.get('whatsapp_support') if settings else None)
+    
+    if not phone:
+        raise HTTPException(status_code=400, detail="Phone number required")
+    
+    # Format message if not provided
+    if not request.message:
+        if isinstance(user.get('expires_at'), str):
+            user['expires_at'] = datetime.fromisoformat(user['expires_at'])
+        
+        expires_at_str = format(user['expires_at'], 'dd/MM/yyyy', locale=ptBR) if user.get('expires_at') else ''
+        
+        message = format_expiring_message(
+            name=user.get('name', user['username']),
+            username=user['username'],
+            expires_at=expires_at_str,
+            plan_price=user.get('plan_price', 0.0),
+            pay_url=user.get('pay_url', ''),
+            notes=""
+        )
+    else:
+        message = request.message
+    
+    # Send
+    result = await send_whatsapp_message(phone, message)
+    
+    return {"success": result["success"], "message": "WhatsApp sent" if result["success"] else "Failed"}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
