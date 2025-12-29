@@ -72,9 +72,12 @@ class UserCreate(BaseModel):
     username: str
     password: str
     dns_id: str
+    name: Optional[str] = None
     mac_address: Optional[str] = None
-    expire_date: datetime
+    expires_at: datetime
     pin: Optional[str] = "0000"
+    plan_price: Optional[float] = None
+    pay_url: Optional[str] = None
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
