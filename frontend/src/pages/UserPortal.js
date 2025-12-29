@@ -61,8 +61,8 @@ const UserPortal = () => {
   };
 
   const getDaysRemaining = () => {
-    if (!data?.user?.expire_date) return 0;
-    return differenceInDays(new Date(data.user.expire_date), new Date());
+    if (!data?.user?.expires_at) return 0;
+    return differenceInDays(new Date(data.user.expires_at), new Date());
   };
 
   const openWhatsApp = () => {
@@ -160,7 +160,7 @@ const UserPortal = () => {
                 {format(new Date(data.user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
               </div>
               <p className="text-sm text-muted-foreground">
-                Vencimento: {format(new Date(data.user.expire_date), 'dd/MM/yyyy', { locale: ptBR })}
+                Vencimento: {format(new Date(data.user.expires_at), 'dd/MM/yyyy', { locale: ptBR })}
               </p>
             </CardContent>
           </Card>
