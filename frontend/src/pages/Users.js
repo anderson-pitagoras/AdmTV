@@ -424,6 +424,12 @@ const Users = () => {
           </Table>
         </div>
       </div>
+
+      <WhatsAppDialog
+        open={whatsappDialog.open}
+        onClose={() => setWhatsappDialog({ open: false, userId: null })}
+        userId={whatsappDialog.userId}
+      />
     </DashboardLayout>
   );
 };
