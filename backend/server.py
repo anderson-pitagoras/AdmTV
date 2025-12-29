@@ -572,25 +572,23 @@ class SendWhatsAppRequest(BaseModel):
 
 @api_router.post("/notifications/send-whatsapp")
 async def send_whatsapp_notification(request: SendWhatsAppRequest, current_admin: Admin = Depends(get_current_admin)):
-    # Get user
+    settings = await db.settings.find_one({"id": "system_settings"}, {"_id": 0})
+    if not settings or not settings.get('whatsapp_enabled'):
+        raise HTTPException(status_code=400, detail="WhatsApp not configured")
+    
     user = await db.users.find_one({"id": request.user_id}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Get settings for support phone
-    settings = await db.settings.find_one({"id": "system_settings"}, {"_id": 0})
-    phone = request.phone or (settings.get('whatsapp_support') if settings else None)
-    
+    phone = request.phone or settings.get('whatsapp_support')
     if not phone:
-        raise HTTPException(status_code=400, detail="Phone number required")
+        raise HTTPException(status_code=400, detail="Phone required")
     
-    # Format message if not provided
-    if not request.message:
+    message = request.message
+    if not message:
         if isinstance(user.get('expires_at'), str):
             user['expires_at'] = datetime.fromisoformat(user['expires_at'])
-        
         expires_at_str = user['expires_at'].strftime('%d/%m/%Y') if user.get('expires_at') else ''
-        
         message = format_expiring_message(
             name=user.get('name', user['username']),
             username=user['username'],
@@ -599,13 +597,9 @@ async def send_whatsapp_notification(request: SendWhatsAppRequest, current_admin
             pay_url=user.get('pay_url', ''),
             notes=""
         )
-    else:
-        message = request.message
     
-    # Send
-    result = await send_whatsapp_message(phone, message)
-    
-    return {"success": result["success"], "message": "WhatsApp sent" if result["success"] else "Failed"}
+    result = await send_whatsapp_message(phone, message, settings)
+    return {"success": result["success"]}
 
 
 # Include the router in the main app
