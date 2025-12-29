@@ -46,6 +46,7 @@ const Settings = () => {
       const response = await axiosInstance.get('/templates');
       setTemplates(response.data);
     } catch (error) {}
+  };
 
   const handleAddTemplate = async () => {
     if (!newTemplate.name || !newTemplate.message) return toast.error('Preencha nome e mensagem');
