@@ -87,6 +87,7 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     dns_id: Optional[str] = None
     name: Optional[str] = None
+    phone: Optional[str] = None
     mac_address: Optional[str] = None
     expires_at: Optional[datetime] = None
     active: Optional[bool] = None
