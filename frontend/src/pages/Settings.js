@@ -16,8 +16,14 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     whatsapp_support: '',
-    welcome_message: ''
+    welcome_message: '',
+    whatsapp_enabled: false,
+    whatsapp_url: 'https://wuzapi.criartebrasil.com.br/api',
+    whatsapp_instance: '',
+    whatsapp_token: ''
   });
+  const [templates, setTemplates] = useState([]);
+  const [newTemplate, setNewTemplate] = useState({ name: '', message: '' });
 
   useEffect(() => {
     fetchSettings();
