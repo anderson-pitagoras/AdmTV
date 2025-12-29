@@ -249,15 +249,18 @@ async def create_user(user_data: UserCreate, current_admin: Admin = Depends(get_
         username=user_data.username,
         password=user_data.password,
         dns_id=user_data.dns_id,
+        name=user_data.name,
         mac_address=user_data.mac_address,
-        expire_date=user_data.expire_date,
+        expires_at=user_data.expires_at,
         lista_m3u=lista_m3u,
-        pin=user_data.pin or "0000"
+        pin=user_data.pin or "0000",
+        plan_price=user_data.plan_price,
+        pay_url=user_data.pay_url
     )
     
     doc = user.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
-    doc['expire_date'] = doc['expire_date'].isoformat()
+    doc['expires_at'] = doc['expires_at'].isoformat()
     await db.users.insert_one(doc)
     
     return user
